@@ -132,7 +132,30 @@ class KtuvitManager {
 
             //Getting the sub's ktuvit id.
             let id  = sub.cells[5].firstElementChild.getAttribute('data-subtitle-id');
-            return {subName: subName, id: id};
+
+            //Amount of times the sub has been downloaded.
+            let downloads = parseInt(sub.cells[4].innerHTML);
+
+            //The sub file's upload date.
+            let uploadDate = new Date(sub.cells[3].innerHTML.split('/').reverse().join('-'));
+            
+            //The sub file size.
+            let size = sub.cells[2].innerHTML;
+
+            //Sub's file type.
+            let fileType = sub.cells[1].innerHTML;
+
+            //The sub creator
+            let credit = sub.cells[0].querySelector("div > small").innerHTML;
+
+            return {subName: subName,
+                id: id,
+                downloads: downloads,
+                uploadDate: uploadDate,
+                size: size,
+                fileType: fileType,
+                credit: credit
+            };
         });
 
         return subtitlesIDs;
@@ -161,5 +184,8 @@ class KtuvitManager {
 
 
 }
+
+var manager = new KtuvitManager('u=7CA271EC2204B13FAE3F3CFE9D24F3AC&g=3B82622A00E8D3D24F982498638320F48803A3A8CED4220DEDCFBE2A06219528853A8A8AFC7589346C15A2979E58EC07');
+manager.getSubsIDsListEpisode('6472AA8A95AFD000664C8CA525604B38', 1, 2).then(res => {console.log(res)})
 
 module.exports = KtuvitManager;
