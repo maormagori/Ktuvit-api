@@ -7,24 +7,34 @@ const superagent = require("superagent")
 // TODO: add error handling everywhere.
 class KtuvitManager {
     
+    static BASE_URL = "https://www.ktuvit.me/";
+    static KTUVIT = {
+        SEARCH_URL: this.BASE_URL + "Services/ContentProvider.svc/SearchPage_search",
+        MOVIE_INFO_URL: this.BASE_URL + "MovieInfo.aspx?ID=",
+        EPISODE_INFO_URL: this.BASE_URL + "Services/GetModuleAjax.ashx?",
+        REQUEST_DOWNLOAD_IDENTIFIER_URL: this.BASE_URL + "Services/ContentProvider.svc/RequestSubtitleDownload",
+        DOWNLOAD_SUB_URL: this.BASE_URL + "Services/DownloadFile.ashx?DownloadIdentifier=",
+        LOGIN_URL: this.BASE_URL + "Services/MembershipService.svc/Login"
+    };
+
+
     constructor(loginCookie){
-        this.BASE_URL = "https://www.ktuvit.me/";
-        this.KTUVIT = {
-            SEARCH_URL: this.BASE_URL + "Services/ContentProvider.svc/SearchPage_search",
-            MOVIE_INFO_URL: this.BASE_URL + "MovieInfo.aspx?ID=",
-            EPISODE_INFO_URL: this.BASE_URL + "Services/GetModuleAjax.ashx?",
-            REQUEST_DOWNLOAD_IDENTIFIER_URL: this.BASE_URL + "Services/ContentProvider.svc/RequestSubtitleDownload",
-            DOWNLOAD_SUB_URL: this.BASE_URL + "Services/DownloadFile.ashx?DownloadIdentifier="
-        };
+        
         this.loginCookie = loginCookie;
         this.headers = {
             "accept": "application/json, text/javascript, */*; q=0.01",
             "cookie": `Login=${this.loginCookie}`
         }
-        
     }
     
-
+    static async getLoginCookie(email, hashedPass) {
+        return superagent.post(this.KTUVIT.LOGIN_URL)
+            .send({"request" :{Email:email , Password:hashedPass}}).then(res => {
+                //Parsing the cookie as a string because a cookie parser would be
+                // an extra dependency for an edge case. 
+                return res.headers['set-cookie'][1].split(';')[0].replace('Login=','')
+            });
+    }
 
     postWithLoginInfo(link, data){
         return new Promise((resolve, reject)=>{
@@ -184,7 +194,4 @@ class KtuvitManager {
             .then(res => {cb(res.text)})
             .catch(err => err)
     }
-
-
 }
-
