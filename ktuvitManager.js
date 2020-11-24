@@ -36,6 +36,10 @@ class KtuvitManager {
             });
     }
 
+    validateCookie(){
+        //TODO: add a validator.
+    }
+
     postWithLoginInfo(link, data){
         return new Promise((resolve, reject)=>{
             superagent.post(link)
@@ -73,9 +77,26 @@ class KtuvitManager {
                     "WithSubsOnly": item.withSubsOnly || false
         };
 
-
-        let res = await this.postWithLoginInfo(this.KTUVIT.SEARCH_URL,query);
-        return JSON.parse(res.body.d).Films;
+        try{
+            let res = await this.postWithLoginInfo(KtuvitManager.KTUVIT.SEARCH_URL,query);
+            // console.log(res);
+            const parsedData = JSON.parse(res.body.d);
+            if(parsedData.ErrorMessage == "" || parsedData.ErrorMessage == null)
+                return JSON.parse(res.body.d).Films;
+            else{
+                throw new Error("Incorrect search Values");
+            }
+        } catch (err) {
+            if(err.message == "Incorrect search Values"){
+                console.log('search query: \n', query)
+                throw err;
+            }
+            else{
+                console.error('agent error. Please use validateCookie() to make sure your cookie works.')
+                throw err;
+            }
+        }
+        
     }
 
     /**
@@ -96,7 +117,12 @@ class KtuvitManager {
             })
         }
 
-        return this.findIDInResults(await this.searchKtuvit(item),item.imdbId);
+        try{
+            return this.findIDInResults(await this.searchKtuvit(item),item.imdbId);
+        }
+        catch (err) {
+            return null;
+        }
         
 
     }
@@ -111,17 +137,18 @@ class KtuvitManager {
         //bulding the query. A simple query builder string.
         var query_string = `moduleName=SubtitlesList&SeriesID=${ktuvitID}&Season=${season}&Episode=${episode}`
 
-        var res = await this.getWithLoginInfo(this.KTUVIT.EPISODE_INFO_URL+query_string);
+        var res = await this.getWithLoginInfo(KtuvitManager.KTUVIT.EPISODE_INFO_URL+query_string);
+        console.log(res.data);
         var subtitlesIDs = this.extractSubsFromHtml(res.text);
         //console.log(subtitlesIDs);
-        return subtitlesIDs;
+        return subtitlesIDs || [];
 
     }
 
     async getSubsIDsListMovie(ktuvitID){
         var res = await this.getWithLoginInfo(this.KTUVIT.MOVIE_INFO_URL+ktuvitID);
         var subtitlesIDs = this.extractSubsFromHtml(res.text);
-        return subtitlesIDs;
+        return subtitlesIDs || [];
     }
 
     extractSubsFromHtml(html) {
@@ -195,3 +222,6 @@ class KtuvitManager {
             .catch(err => err)
     }
 }
+
+var manager = new KtuvitManager('u=7CA271EC2204B13FAE3F3CFE9D24F3AC&g=3B82622A00E8D3D24F982498638320F48803A3A8CED4220DEDCFBE2A06219528853A8A8AFC7589346C15A2979E58EC07');
+manager.getSubsIDsListEpisode('008C29A60AE0CC5D6A082E4195676FC0', 6,7);
