@@ -138,9 +138,7 @@ class KtuvitManager {
         var query_string = `moduleName=SubtitlesList&SeriesID=${ktuvitID}&Season=${season}&Episode=${episode}`
 
         var res = await this.getWithLoginInfo(KtuvitManager.KTUVIT.EPISODE_INFO_URL+query_string);
-        console.log(res.data);
         var subtitlesIDs = this.extractSubsFromHtml(res.text);
-        //console.log(subtitlesIDs);
         return subtitlesIDs || [];
 
     }
@@ -223,5 +221,3 @@ class KtuvitManager {
     }
 }
 
-var manager = new KtuvitManager('u=7CA271EC2204B13FAE3F3CFE9D24F3AC&g=3B82622A00E8D3D24F982498638320F48803A3A8CED4220DEDCFBE2A06219528853A8A8AFC7589346C15A2979E58EC07');
-manager.getSubsIDsListEpisode('008C29A60AE0CC5D6A082E4195676FC0', 6,7);
