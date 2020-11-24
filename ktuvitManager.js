@@ -7,13 +7,13 @@ const superagent = require("superagent")
 class KtuvitManager {
     
     constructor(loginCookie){
+        this.BASE_URL = "https://www.ktuvit.me/";
         this.KTUVIT = {
-            BASE_URL: "https://www.ktuvit.me/",
-            SEARCH_URL: "https://www.ktuvit.me/Services/ContentProvider.svc/SearchPage_search",
-            MOVIE_INFO_URL: "https://www.ktuvit.me/MovieInfo.aspx?ID=",
-            EPISODE_INFO_URL: "https://www.ktuvit.me/Services/GetModuleAjax.ashx?",
-            REQUEST_DOWNLOAD_IDENTIFIER_URL: "https://www.ktuvit.me/Services/ContentProvider.svc/RequestSubtitleDownload",
-            DOWNLOAD_SUB_URL: "https://www.ktuvit.me/Services/DownloadFile.ashx?DownloadIdentifier="
+            SEARCH_URL: this.BASE_URL + "Services/ContentProvider.svc/SearchPage_search",
+            MOVIE_INFO_URL: this.BASE_URL + "MovieInfo.aspx?ID=",
+            EPISODE_INFO_URL: this.BASE_URL + "Services/GetModuleAjax.ashx?",
+            REQUEST_DOWNLOAD_IDENTIFIER_URL: this.BASE_URL + "Services/ContentProvider.svc/RequestSubtitleDownload",
+            DOWNLOAD_SUB_URL: this.BASE_URL + "Services/DownloadFile.ashx?DownloadIdentifier="
         };
         this.loginCookie = loginCookie;
         this.headers = {
