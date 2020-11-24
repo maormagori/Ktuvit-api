@@ -4,7 +4,6 @@ const superagent = require("superagent")
     imdb2name = require('name-to-imdb');
 
 
-// TODO: add error handling everywhere.
 class KtuvitManager {
     
     static BASE_URL = "https://www.ktuvit.me/";
@@ -221,3 +220,4 @@ class KtuvitManager {
     }
 }
 
+module.exports = KtuvitManager;
