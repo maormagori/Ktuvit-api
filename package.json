@@ -15,5 +15,10 @@
   "bugs": {
     "url": "https://github.com/maormagori/Ktuvit-api/issues"
   },
-  "homepage": "https://github.com/maormagori/Ktuvit-api#readme"
+  "homepage": "https://github.com/maormagori/Ktuvit-api#readme",
+  "dependencies": {
+    "jsdom": "^16.4.0",
+    "superagent": "^6.1.0",
+    "superagent-charset": "^1.2.0"
+  }
 }
