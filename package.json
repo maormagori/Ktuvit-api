@@ -1,0 +1,19 @@
+{
+  "name": "ktuvit-api",
+  "version": "0.0.1",
+  "description": "An unofficial JS api for Ktuvit.me (previously screwzira)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maormagori/Ktuvit-api.git"
+  },
+  "author": "Maor Magori",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/maormagori/Ktuvit-api/issues"
+  },
+  "homepage": "https://github.com/maormagori/Ktuvit-api#readme"
+}
