@@ -1,6 +1,7 @@
 const superagent = require("superagent")
     require('superagent-charset')(superagent),
-    jsdom = require('jsdom');
+    jsdom = require('jsdom'),
+    imdb2name = require('name-to-imdb');
 
 
 // TODO: add error handling everywhere.
@@ -47,48 +48,50 @@ class KtuvitManager {
         })
     }
 
+    async searchKtuvit(item){
+        const query = {"FilmName": item.name || "",
+                    "Actors": item.actors || [],
+                    "Studios": item.studios || null,
+                    "Directors": item.directors || [],
+                    "Genres": item.genres || [],
+                    "Countries": item.countries || [],
+                    "Languages": item.languages || [],
+                    "Year": item.year === undefined ? "":`${item.year}`.split("–")[0],
+                    "Rating": item.rating || [],
+                    "Page": 1,
+                    "SearchType": item.type === undefined ? "-1":(item.type == "movie" ? "0":"1"),
+                    "WithSubsOnly": item.withSubsOnly || false
+        };
+
+
+        let res = await this.postWithLoginInfo(this.KTUVIT.SEARCH_URL,query);
+        return JSON.parse(res.body.d).Films;
+    }
+
     /**
      * 
      * @param {Object} item      The title to search. includes: name, year, type, imdbId. All strings.
      */
     async getKtuvitID(item){
 
-        const query = {"FilmName": item.name,
-                    "Actors": [],
-                    "Studios": null,
-                    "Directors": [],
-                    "Genres": [],
-                    "Countries": [],
-                    "Languages": [],
-                    "Year": `${item.year}`.split("–")[0],
-                    "Rating": [],
-                    "Page": 1,
-                    "SearchType": item.type === "movie" ? "0":"1",
-                    "WithSubsOnly": false
-        };
-
-        //console.log(query)
-
-        if (item.type === "movie")
-            query.SearchType = "0";
-        else
-            query.SearchType = "1";
-
-        try{
-            let res = await this.postWithLoginInfo(this.KTUVIT.SEARCH_URL,query);
-            return this.findIDInResults(res.body, item.imdbId);
-        } catch (err) {
-            console.log("addHeaders: Bad Request:");
-            console.log(err);
+        if (item.imdbId === undefined)
+            throw new Error('imdbId not provided.')
+        
+        //For some reason id based search doesn't work in ktuvit so we fetch the name from Imdb.
+        if (item.name === undefined){
+            await imdb2name(item.imdbId, function (err, res, inf){
+                if(err)
+                    throw err;
+                item.name = inf.meta.name;
+            })
         }
+
+        return this.findIDInResults(await this.searchKtuvit(item),item.imdbId);
         
 
     }
 
-    findIDInResults(body, imdbId){
-        //console.log(body);
-        //console.log({ImdbId: imdbId,body: body});
-        const films = [...JSON.parse(body.d).Films]
+    findIDInResults(films, imdbId){
 
         return films.find(title => title.ImdbID == imdbId).ID;
     }
@@ -185,7 +188,3 @@ class KtuvitManager {
 
 }
 
-var manager = new KtuvitManager('u=7CA271EC2204B13FAE3F3CFE9D24F3AC&g=3B82622A00E8D3D24F982498638320F48803A3A8CED4220DEDCFBE2A06219528853A8A8AFC7589346C15A2979E58EC07');
-manager.getSubsIDsListEpisode('6472AA8A95AFD000664C8CA525604B38', 1, 2).then(res => {console.log(res)})
-
-module.exports = KtuvitManager;
