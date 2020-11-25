@@ -28,7 +28,7 @@ class KtuvitManager {
     }
     
     static async getLoginCookie(email, hashedPass) {
-        return superagent.post(this.KTUVIT.LOGIN_URL)
+        return superagent.post(KtuvitManager.KTUVIT.LOGIN_URL)
             .send({"request" :{Email:email , Password:hashedPass}}).then(res => {
                 //Parsing the cookie as a string because a cookie parser would be
                 // an extra dependency for an edge case. 
@@ -70,7 +70,7 @@ class KtuvitManager {
                     "Genres": item.genres || [],
                     "Countries": item.countries || [],
                     "Languages": item.languages || [],
-                    "Year": item.year === undefined ? "":`${item.year}`.split("–")[0],
+                    "Year": item.year === undefined ? "":`${item.year}`.split("–")[0].trim(),
                     "Rating": item.rating || [],
                     "Page": 1,
                     "SearchType": item.type === undefined ? "-1":(item.type == "movie" ? "0":"1"),
@@ -144,7 +144,7 @@ class KtuvitManager {
     }
 
     async getSubsIDsListMovie(ktuvitID){
-        var res = await this.getWithLoginInfo(this.KTUVIT.MOVIE_INFO_URL+ktuvitID);
+        var res = await this.getWithLoginInfo(KtuvitManager.KTUVIT.MOVIE_INFO_URL+ktuvitID);
         var subtitlesIDs = this.extractSubsFromHtml(res.text);
         return subtitlesIDs || [];
     }
@@ -208,10 +208,10 @@ class KtuvitManager {
             "PredefinedLayout": -1
         };
 
-        let downloadIdentifier = await this.postWithLoginInfo(this.KTUVIT.REQUEST_DOWNLOAD_IDENTIFIER_URL,downloadIdentifierRequest);
+        let downloadIdentifier = await this.postWithLoginInfo(KtuvitManager.KTUVIT.REQUEST_DOWNLOAD_IDENTIFIER_URL,downloadIdentifierRequest);
         downloadIdentifier = JSON.parse(downloadIdentifier.body.d).DownloadIdentifier
         
-        await superagent.get(this.KTUVIT.DOWNLOAD_SUB_URL + downloadIdentifier)
+        await superagent.get(KtuvitManager.KTUVIT.DOWNLOAD_SUB_URL + downloadIdentifier)
             .charset('ISO-8859-8')
             .withCredentials()
             .set(this.headers)
