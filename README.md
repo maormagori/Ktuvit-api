@@ -3,7 +3,7 @@
 Ktuvit is a community based site for hebrew subtitles. It was previously known as Screwzira and was hosted under the same name. Ever since ktuvit moved to a new domain they decided to close their API and calls to bring it back were unanswered.
 Recently I built a project and needed a quick access to Ktuvit's database so I built this API.
 
-**Disclaimer:**I called it an API but we don't really have direct access to the database. It works by making the same requests a user using the site would and extracting the results from the HTML at times.
+**Disclaimer:** I called it an API but we don't really have direct access to the database. It works by making the same requests a user using the site would and extracting the results from the HTML at times.
 
 **Disclaimer:** I'm by no means affiliated or am a part of Ktuvit. If this project breaks the site's TOS, reach out to me and I will terminate it.
 
