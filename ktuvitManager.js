@@ -3,7 +3,8 @@ const superagent = require("superagent")
     jsdom = require('jsdom'),
     imdb2name = require('name-to-imdb');
 
-
+//TODO: more error handeling
+//TODO: docs.
 class KtuvitManager {
     
     static BASE_URL = "https://www.ktuvit.me/";
