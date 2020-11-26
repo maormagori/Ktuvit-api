@@ -1,6 +1,6 @@
 {
   "name": "ktuvit-api",
-  "version": "0.1.5",
+  "version": "0.2.5",
   "description": "An unofficial JS api for Ktuvit.me (previously screwzira)",
   "main": "ktuvitManager.js",
   "scripts": {

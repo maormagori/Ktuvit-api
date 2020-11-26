@@ -43,8 +43,7 @@ class KtuvitManager {
             "accept": "application/json, text/javascript, */*; q=0.01",
             "cookie": `Login=${this.loginCookie}`
         }
-        this.cache = {};
-        this.cacheTimes = {};
+        this.imdbCache = {};
     }
     
     /**
@@ -138,7 +137,6 @@ class KtuvitManager {
                     "WithSubsOnly": item.withSubsOnly || false
         };
 
-        console.log(query);
         try{
             let res = await this.postWithLoginInfo(KtuvitManager.KTUVIT.SEARCH_URL,query);
             const parsedData = JSON.parse(res.body.d);
@@ -173,10 +171,11 @@ class KtuvitManager {
         if (item.imdbId === undefined)
             throw new Error('imdbId not provided.')
         
-        let addTitleIfMissing = new Promise(function(resolve, reject){
+
+        const getTitleName = (resolve, reject) => {
             //For some reason id based search doesn't work in ktuvit so we fetch the name from Imdb.
             if (item.name === undefined){
-                imdb2name(item.imdbId, function (err, res, inf){
+                imdb2name(item.imdbId, (err, res, inf) => {
                     if(err)
                         reject(err);
                     item.name = inf.meta.name;
@@ -185,8 +184,12 @@ class KtuvitManager {
             }
             else
                 resolve(item)
-        })
+        }
 
+        if (this.imdbCache.hasOwnProperty(item.imdbId))
+            return this.imdbCache[item.imdbId];
+        
+        let addTitleIfMissing = new Promise(getTitleName)
         return this.findIDInResults(await this.searchKtuvit(await addTitleIfMissing),item.imdbId);
         
     }
@@ -198,7 +201,9 @@ class KtuvitManager {
      */
     findIDInResults(films, imdbId){
         try{
-            return films.find(title => title.ImdbID == imdbId).ID;
+            const ktuvitId = films.find(title => title.ImdbID == imdbId).ID;
+            this.imdbCache[imdbId] = ktuvitId;
+            return ktuvitId;
         }
         catch (err){
             return null
@@ -326,4 +331,3 @@ class KtuvitManager {
 }
 
 module.exports = KtuvitManager;
-

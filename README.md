@@ -48,6 +48,7 @@ Since I've built this API for my needs and in a rush it's probably lacking a lot
 
 ## TODO
 Feel free to help with these:
+- [x] Cache system
 - [ ] Better error handling.
 - [x] Add documentation.
 - [ ] Translate the readme.
