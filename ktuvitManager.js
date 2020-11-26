@@ -43,6 +43,8 @@ class KtuvitManager {
             "accept": "application/json, text/javascript, */*; q=0.01",
             "cookie": `Login=${this.loginCookie}`
         }
+        this.cache = {};
+        this.cacheTimes = {};
     }
     
     /**
@@ -136,6 +138,7 @@ class KtuvitManager {
                     "WithSubsOnly": item.withSubsOnly || false
         };
 
+        console.log(query);
         try{
             let res = await this.postWithLoginInfo(KtuvitManager.KTUVIT.SEARCH_URL,query);
             const parsedData = JSON.parse(res.body.d);
@@ -162,30 +165,30 @@ class KtuvitManager {
     /**
      * Returns just the Ktuvit ID of a title's. Can only be used with imdbID.
      * @param {Item} item search Item
-     * @returns {string} Ktuvit ID
+     * @returns {string|null} Ktuvit ID
      */
     async getKtuvitID(item){
 
+        
         if (item.imdbId === undefined)
             throw new Error('imdbId not provided.')
         
-        //For some reason id based search doesn't work in ktuvit so we fetch the name from Imdb.
-        if (item.name === undefined){
-            await imdb2name(item.imdbId, function (err, res, inf){
-                if(err)
-                    throw err;
-                item.name = inf.meta.name;
-            })
-        }
+        let addTitleIfMissing = new Promise(function(resolve, reject){
+            //For some reason id based search doesn't work in ktuvit so we fetch the name from Imdb.
+            if (item.name === undefined){
+                imdb2name(item.imdbId, function (err, res, inf){
+                    if(err)
+                        reject(err);
+                    item.name = inf.meta.name;
+                    resolve(item)
+                })
+            }
+            else
+                resolve(item)
+        })
 
-        try{
-            return this.findIDInResults(await this.searchKtuvit(item),item.imdbId);
-        }
-        catch (err) {
-            return null;
-        }
+        return this.findIDInResults(await this.searchKtuvit(await addTitleIfMissing),item.imdbId);
         
-
     }
 
     /**
@@ -194,7 +197,12 @@ class KtuvitManager {
      * @param {string} imdbId 
      */
     findIDInResults(films, imdbId){
-        return films.find(title => title.ImdbID == imdbId).ID;
+        try{
+            return films.find(title => title.ImdbID == imdbId).ID;
+        }
+        catch (err){
+            return null
+        }
     }
 
     /**
@@ -318,3 +326,4 @@ class KtuvitManager {
 }
 
 module.exports = KtuvitManager;
+
