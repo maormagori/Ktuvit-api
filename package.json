@@ -2,7 +2,7 @@
   "name": "ktuvit-api",
   "version": "0.1.2",
   "description": "An unofficial JS api for Ktuvit.me (previously screwzira)",
-  "main": "index.js",
+  "main": "ktuvitManager.js",
   "scripts": {
     "test": "node ktuvitManager.js"
   },
@@ -16,6 +16,14 @@
     "url": "https://github.com/maormagori/Ktuvit-api/issues"
   },
   "homepage": "https://github.com/maormagori/Ktuvit-api#readme",
+  "keywords": [
+    "hebrew",
+    "ktuvit",
+    "subtitle",
+    "API",
+    "subtitles",
+    "srt"
+  ],
   "dependencies": {
     "jsdom": "^16.4.0",
     "name-to-imdb": "^3.0.1",
