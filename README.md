@@ -49,7 +49,7 @@ Since I've built this API for my needs and in a rush it's probably lacking a lot
 ## TODO
 Feel free to help with these:
 - [ ] Better error handling.
-- [ ] Add documentation.
+- [x] Add documentation.
 - [ ] Translate the readme.
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
