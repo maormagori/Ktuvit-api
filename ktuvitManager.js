@@ -1,13 +1,28 @@
+/**
+ * @author Maor Magori
+ * @copyright Maor Magori 2020
+ * @license MIT
+ */
+
+// Importing notations
+//      The request manager.
 const superagent = require("superagent")
+    // Hebrew chars encoding
     require('superagent-charset')(superagent),
+    // HTML parser.
     jsdom = require('jsdom'),
+    // converts IMDb id to name.
     imdb2name = require('name-to-imdb');
 
-//TODO: more error handeling
-//TODO: docs.
+/**
+ * Class that handles all the calls to Ktuvit.me
+ */
 class KtuvitManager {
     
+    // Ktuvit's current address
     static BASE_URL = "https://www.ktuvit.me/";
+
+    // Enum of used Ktuvit links.
     static KTUVIT = {
         SEARCH_URL: this.BASE_URL + "Services/ContentProvider.svc/SearchPage_search",
         MOVIE_INFO_URL: this.BASE_URL + "MovieInfo.aspx?ID=",
@@ -17,7 +32,10 @@ class KtuvitManager {
         LOGIN_URL: this.BASE_URL + "Services/MembershipService.svc/Login"
     };
 
-
+    /**
+     * @constructor
+     * @param {string} loginCookie User's login cookie's content from Ktuvit.
+     */
     constructor(loginCookie){
         
         this.loginCookie = loginCookie;
@@ -27,19 +45,36 @@ class KtuvitManager {
         }
     }
     
+    /**
+     * Use in case you don't have the user's login cookie.
+     * @todo Add error for wrong credentials.
+     * @returns The given user's login cookie
+     * @param {string} email 
+     * @param {string} hashedPass 
+     */
     static async getLoginCookie(email, hashedPass) {
         return superagent.post(KtuvitManager.KTUVIT.LOGIN_URL)
             .send({"request" :{Email:email , Password:hashedPass}}).then(res => {
                 //Parsing the cookie as a string because a cookie parser would be
-                // an extra dependency for an edge case. 
+                // an extra dependency for a single use. 
                 return res.headers['set-cookie'][1].split(';')[0].replace('Login=','')
             });
     }
 
+    /**
+     * Use this to make sure your manager's cookie works.
+     * @returns {true|false} true if cookie works, false otherwise. 
+     */
     validateCookie(){
         //TODO: add a validator.
     }
 
+    /**
+     * Makes post calls with the user's cookie.
+     * @param {string} link url
+     * @param {string} data post data.
+     * @returns {Promise} request promise
+     */
     postWithLoginInfo(link, data){
         return new Promise((resolve, reject)=>{
             superagent.post(link)
@@ -51,6 +86,11 @@ class KtuvitManager {
         })
     }
 
+    /**
+     * Makes get calls with the user's cookie.
+     * @param {string} link url
+     * @returns {Promise} request promise
+     */
     getWithLoginInfo(link){
         return new Promise((resolve, reject)=>{
             superagent.get(link)
@@ -62,10 +102,29 @@ class KtuvitManager {
         })
     }
 
+    /**
+     * Searches given arguments on ktuvit and returns results array.
+     * As an advice you should avoid using anything besides name, type, year and withSubsOnly.
+     * @typedef {object} Item
+     * @property {string} name Title's name
+     * @property {Array.<string>} actors actors names
+     * @property {Array.<string>} directors directors names
+     * @property {Array.<string>} genres title's geners
+     * @property {Array.<string>} countries Title's origin countries
+     * @property {Array.<string>} languages title's languages
+     * @property {string} year relese year or series range
+     * @property {Array.<string>} rating imdb ratings to include.
+     * @property {movie|series} type Title's type
+     * @property {true|false} withSubsOnly weather to show subless titles.
+     * @property {string} imdbId Imdb id
+     * @param {Item} item search parameters.
+     * @returns {Array} results array
+     */
     async searchKtuvit(item){
+        // The search query
         const query = {"FilmName": item.name || "",
                     "Actors": item.actors || [],
-                    "Studios": item.studios || null,
+                    "Studios": null,
                     "Directors": item.directors || [],
                     "Genres": item.genres || [],
                     "Countries": item.countries || [],
@@ -79,11 +138,11 @@ class KtuvitManager {
 
         try{
             let res = await this.postWithLoginInfo(KtuvitManager.KTUVIT.SEARCH_URL,query);
-            // console.log(res);
             const parsedData = JSON.parse(res.body.d);
             if(parsedData.ErrorMessage == "" || parsedData.ErrorMessage == null)
                 return JSON.parse(res.body.d).Films;
             else{
+                // The search query's arguments are wrong.
                 throw new Error("Incorrect search Values");
             }
         } catch (err) {
@@ -92,6 +151,7 @@ class KtuvitManager {
                 throw err;
             }
             else{
+                // Agent error
                 console.error('agent error. Please use validateCookie() to make sure your cookie works.')
                 throw err;
             }
@@ -100,8 +160,9 @@ class KtuvitManager {
     }
 
     /**
-     * 
-     * @param {Object} item      The title to search. includes: name, year, type, imdbId. All strings.
+     * Returns just the Ktuvit ID of a title's. Can only be used with imdbID.
+     * @param {Item} item search Item
+     * @returns {string} Ktuvit ID
      */
     async getKtuvitID(item){
 
@@ -127,28 +188,57 @@ class KtuvitManager {
 
     }
 
+    /**
+     * returns Ktuvit ID of a title based on it's imdbID from a results array.
+     * @param {Array} films 
+     * @param {string} imdbId 
+     */
     findIDInResults(films, imdbId){
-
         return films.find(title => title.ImdbID == imdbId).ID;
     }
 
+    /**
+     * return an array of subtitle object for a given episode's ktuvit id.
+     * @param {string} ktuvitID Ktuvit ID of a title.
+     * @param {string|number} season 
+     * @param {string|number} episode 
+     * @returns {Array.<subtitle>}
+     */
     async getSubsIDsListEpisode(ktuvitID, season, episode){
         
         //bulding the query. A simple query builder string.
         var query_string = `moduleName=SubtitlesList&SeriesID=${ktuvitID}&Season=${season}&Episode=${episode}`
 
         var res = await this.getWithLoginInfo(KtuvitManager.KTUVIT.EPISODE_INFO_URL+query_string);
-        var subtitlesIDs = this.extractSubsFromHtml(res.text);
-        return subtitlesIDs || [];
+        var subtitles = this.extractSubsFromHtml(res.text);
+        return subtitles || [];
 
     }
 
+    /**
+     * return an array of subtitle object for a given movie's ktuvit id.
+     * @param {string} ktuvitID Ktuvit ID of a title.
+     * @returns {Array.<subtitle>}
+     */
     async getSubsIDsListMovie(ktuvitID){
         var res = await this.getWithLoginInfo(KtuvitManager.KTUVIT.MOVIE_INFO_URL+ktuvitID);
-        var subtitlesIDs = this.extractSubsFromHtml(res.text);
-        return subtitlesIDs || [];
+        var subtitles = this.extractSubsFromHtml(res.text);
+        return subtitles || [];
     }
 
+    /**
+     * extracts subtitles info from html page.
+     * @typedef subtitle
+     * @property {string} subName The sub's file name.
+     * @property {string} id SubId of the sub.
+     * @property {number} downloads Amount of times the file's been downloaded.
+     * @property {date} uploadDate when the sub was uploaded.
+     * @property {string} size File size.
+     * @property {string} fileType File extension.
+     * @property {string} credit The credit's section from Ktuvit website.
+     * @param {string} html 
+     * @returns {Array.<subtitle>}
+     */
     extractSubsFromHtml(html) {
         //The episode html only contains the subtitle rows and since I built this function
         //for the movie's html so I need to add the missing information.
@@ -158,11 +248,10 @@ class KtuvitManager {
         var subtitlesListElement = dummyDom.document.getElementById('subtitlesList');
         subtitlesListElement = [...subtitlesListElement.rows];
         subtitlesListElement.shift();
-        //console.log(subtitlesListElement.length);
+        // I don't care it's this way, it works.
+        // I never learned jquery so don't judge me.
         var subtitlesIDs = subtitlesListElement.map((sub) => {
             //Getting sub's file name from html.
-            //I don't care it's this way, it works.
-            //I never learned jquery so don't judge me.
             let subName = sub.cells[0].querySelector("div").innerHTML.split('<br>')[0];
             
             //trimming sub's name
@@ -199,6 +288,12 @@ class KtuvitManager {
         return subtitlesIDs;
     }
 
+    /**
+     * DOwnloads the srt and calls the callback function with the srt content.
+     * @param {string} KtuvitId Title's ktuvit id
+     * @param {string} subId The sub's id.
+     * @param {function (buffer)} cb The callback function
+     */
     async downloadSubtitle(KtuvitId, subId, cb){
         const downloadIdentifierRequest = {
             "FilmID": KtuvitId,
@@ -208,6 +303,7 @@ class KtuvitManager {
             "PredefinedLayout": -1
         };
 
+        // To prevent unknown download calls. each download has a one time use token called download identifier.
         let downloadIdentifier = await this.postWithLoginInfo(KtuvitManager.KTUVIT.REQUEST_DOWNLOAD_IDENTIFIER_URL,downloadIdentifierRequest);
         downloadIdentifier = JSON.parse(downloadIdentifier.body.d).DownloadIdentifier
         
