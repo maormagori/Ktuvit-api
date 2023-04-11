@@ -201,7 +201,7 @@ class KtuvitManager {
      */
     findIDInResults(films, imdbId){
         try{
-            const ktuvitId = films.find(title => title.ImdbID == imdbId).ID;
+            const ktuvitId = films.find(title => imdbId.includes(title.ImdbID)).ID;
             this.imdbCache[imdbId] = ktuvitId;
             return ktuvitId;
         }
