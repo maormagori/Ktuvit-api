@@ -188,7 +188,7 @@ class KtuvitManager {
    * @returns {string|null} Ktuvit ID
    */
   async getKtuvitID(item) {
-    if (this._isKtuvitIdCached(item.imdbId)) {
+    if (this._isKtuvitIdCached(item.imdbId) && this.useCache) {
       return this.ktuvitIdCache[item.imdbId];
     }
     if (!item.imdbId) {
