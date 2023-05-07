@@ -7,12 +7,12 @@
 // Importing notations
 //      The request manager.
 const superagent = require("superagent");
-// Hebrew chars encoding
-require("superagent-charset")(superagent),
-  // HTML parser.
-  (jsdom = require("jsdom")),
-  // converts IMDb id to name.
-  (imdb2name = require("name-to-imdb"));
+// Custom encoding middleware for superagent
+require("./detectAndEncodeResponse")(superagent);
+// HTML parser.
+const jsdom = require("jsdom");
+// converts IMDb id to name.
+const imdb2name = require("name-to-imdb");
 
 /**
  * Class that handles all the calls to Ktuvit.me
@@ -374,7 +374,7 @@ class KtuvitManager {
    * DOwnloads the srt and calls the callback function with the srt content.
    * @param {string} KtuvitId Title's ktuvit id
    * @param {string} subId The sub's id.
-   * @param {function (buffer)} cb The callback function
+   * @param {function (buffer, err)} cb The callback function
    */
   async downloadSubtitle(KtuvitId, subId, cb) {
     const downloadIdentifierRequest = {
@@ -403,7 +403,7 @@ class KtuvitManager {
       .then((res) => {
         cb(res.text);
       })
-      .catch((err) => err);
+      .catch((err) => cb(null, err));
   }
 }
 
