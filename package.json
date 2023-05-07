@@ -1,6 +1,6 @@
 {
   "name": "ktuvit-api",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "An unofficial JS api for Ktuvit.me (previously screwzira)",
   "main": "ktuvitManager.js",
   "scripts": {
@@ -25,9 +25,10 @@
     "srt"
   ],
   "dependencies": {
+    "chardet": "^1.5.1",
+    "iconv-lite": "^0.6.3",
     "jsdom": "^16.4.0",
     "name-to-imdb": "^3.0.1",
-    "superagent": "^6.1.0",
-    "superagent-charset": "^1.2.0"
+    "superagent": "^6.1.0"
   }
 }
