@@ -12,16 +12,28 @@ module.exports = function install(superagent) {
   /**
    * add `charset` to request
    *
-   * @param {String} enc : the encoding
+   * @param {String} enc : default encoding
+   * @param {number} bytesAmountForDetection : amount of bytes needed to estimate encoding
    */
 
-  Request.prototype.charset = function (enc) {
+  Request.prototype.charset = function (enc, bytesAmountForDetection) {
     if (!enc) enc = "UTF-8";
     this._parser = function (res, cb) {
+      let detectedEncoding;
+      let bytesSummed = 0;
       const chunks = [];
 
       res.on("data", function (chunk) {
         chunks.push(chunk);
+        if (!detectedEncoding) {
+          bytesSummed += chunk.length;
+          if (
+            bytesAmountForDetection &&
+            bytesSummed > bytesAmountForDetection
+          ) {
+            detectedEncoding = chardet.detect(Buffer.concat(chunks));
+          }
+        }
       });
 
       res.on("end", function () {
@@ -29,7 +41,9 @@ module.exports = function install(superagent) {
         const responseBuffer = Buffer.concat(chunks);
 
         try {
-          detectedEncoding = chardet.detect(responseBuffer);
+          if (!bytesAmountForDetection)
+            detectedEncoding = chardet.detect(responseBuffer);
+
           if (!detectedEncoding) {
             detectedEncoding = enc;
           }
