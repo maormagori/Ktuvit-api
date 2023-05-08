@@ -375,8 +375,9 @@ class KtuvitManager {
    * @param {string} KtuvitId Title's ktuvit id
    * @param {string} subId The sub's id.
    * @param {function (buffer, err)} cb The callback function
+   * @param {object} extraOpts extra options
    */
-  async downloadSubtitle(KtuvitId, subId, cb) {
+  async downloadSubtitle(KtuvitId, subId, cb, extraOpts) {
     const downloadIdentifierRequest = {
       FilmID: KtuvitId,
       SubtitleID: subId,
@@ -396,7 +397,7 @@ class KtuvitManager {
 
     await superagent
       .get(KtuvitManager.KTUVIT.DOWNLOAD_SUB_URL + downloadIdentifier)
-      .charset("ISO-8859-8")
+      .charset("ISO-8859-8", extraOpts?.bytesAmountForDetection)
       .withCredentials()
       .set(this.headers)
       .buffer(true)
