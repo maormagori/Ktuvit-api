@@ -397,7 +397,7 @@ class KtuvitManager {
 
     await superagent
       .get(KtuvitManager.KTUVIT.DOWNLOAD_SUB_URL + downloadIdentifier)
-      .charset("ISO-8859-8", extraOpts?.bytesAmountForDetection)
+      .charset("windows-1255", extraOpts?.bytesAmountForDetection)
       .withCredentials()
       .set(this.headers)
       .buffer(true)

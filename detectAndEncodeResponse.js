@@ -41,7 +41,7 @@ module.exports = function install(superagent) {
         const responseBuffer = Buffer.concat(chunks);
 
         try {
-          if (!bytesAmountForDetection)
+          if (!detectedEncoding)
             detectedEncoding = chardet.detect(responseBuffer);
 
           if (!detectedEncoding) {
