@@ -325,6 +325,13 @@ class KtuvitManager {
       dummyDom.document.getElementById("subtitlesList");
     subtitlesListElement = [...subtitlesListElement.rows];
     subtitlesListElement.shift();
+    // When a title has no subtitles, Ktuvit renders a single placeholder
+    // row (e.g. a colspan'd "אין כתוביות" cell) instead of an empty
+    // fragment. It doesn't have the <div> every real subtitle row has, so
+    // skip anything that doesn't match instead of crashing on it.
+    subtitlesListElement = subtitlesListElement.filter((sub) =>
+      sub.cells[0]?.querySelector("div")
+    );
     // I don't care it's this way, it works.
     // I never learned jquery so don't judge me.
     var subtitlesIDs = subtitlesListElement.map((sub) => {
